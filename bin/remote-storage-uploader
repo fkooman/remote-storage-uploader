@@ -1,0 +1,55 @@
+#!/usr/bin/php
+<?php
+
+require_once dirname(__DIR__).'/vendor/autoload.php';
+
+use GuzzleHttp\Client;
+use fkooman\Config\Reader;
+use fkooman\Config\YamlFile;
+
+try {
+    if (2 > $argc) {
+        throw new Exception('specify file to upload');
+    }
+    if (!is_readable($argv[1])) {
+        throw new Exception('unable to read file');
+    }
+    $fileName = $argv[1];
+
+    $reader = new Reader(
+        new YamlFile(dirname(__DIR__).'/config/uploader.yaml')
+    );
+    $storageRoot = $reader->v('storageRoot');
+    $storageUser = $reader->v('storageUser');
+    $bearerToken = $reader->v('bearerToken');
+
+    $client = new Client(
+        array(
+            'base_url' => $storageRoot,
+        )
+    );
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
+    $contentType = finfo_file($finfo, $fileName);
+    finfo_close($finfo);
+
+    $body = fopen($fileName, 'r');
+
+    $requestUri = sprintf('/%s/public/upload/%s', $storageUser, basename($fileName));
+    $response = $client->put(
+        $requestUri,
+        array(
+            'body' => $body,
+            'headers' => array(
+                'If-None-Match' => '"*"',       // only upload when file does
+                                                // not exist yet
+                'Content-Type' => $contentType,
+                'Authorization' => sprintf('Bearer %s', $bearerToken),
+            ),
+        )
+    );
+    echo $storageRoot.$requestUri.PHP_EOL;
+} catch (Exception $e) {
+    echo $e->getMessage().PHP_EOL;
+    exit(1);
+}

@@ -1,0 +1,15 @@
+{
+    "authors": [
+        {
+            "email": "fkooman@tuxed.net",
+            "name": "Fran\u00e7ois Kooman"
+        }
+    ],
+    "description": "A file uploader for remoteStorage servers",
+    "license": "AGPL3.0",
+    "name": "fkooman/remote-storage-uploader",
+    "require": {
+        "fkooman/config": "^1.0.0",
+        "guzzlehttp/guzzle": "^5.3"
+    }
+}
