@@ -9,6 +9,7 @@
     "license": "AGPL3.0",
     "name": "fkooman/remote-storage-uploader",
     "require": {
+        "ext-fileinfo": "*",
         "fkooman/config": "^1.0.0",
         "guzzlehttp/guzzle": "^5.3"
     }
