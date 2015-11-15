@@ -35,7 +35,8 @@ try {
 
     $body = fopen($fileName, 'r');
 
-    $requestUri = sprintf('/%s/public/upload/%s', $storageUser, basename($fileName));
+    $encodedFileName = rawurlencode(basename($fileName));
+    $requestUri = sprintf('/%s/public/upload/%s', $storageUser, $encodedFileName);
     $response = $client->put(
         $requestUri,
         array(
