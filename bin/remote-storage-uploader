@@ -8,13 +8,29 @@ use fkooman\Config\Reader;
 use fkooman\Config\YamlFile;
 
 try {
-    if (2 > $argc) {
+    $optionForce = false;
+    $optionFolder = null;
+    $fileName = null;
+
+    $i = 1;
+
+    for (; $i < $argc; ++$i) {
+        if ('--force' === $argv[$i]) {
+            $optionForce = true;
+        }
+        if ('--folder' === $argv[$i]) {
+            $optionFolder = $argv[++$i];
+        }
+        $fileName = $argv[$i];
+    }
+
+    if (null === $fileName) {
         throw new Exception('specify file to upload');
     }
-    if (!is_readable($argv[1])) {
+
+    if (!is_readable($fileName)) {
         throw new Exception('unable to read file');
     }
-    $fileName = $argv[1];
 
     $reader = new Reader(
         new YamlFile(dirname(__DIR__).'/config/uploader.yaml')
@@ -36,21 +52,33 @@ try {
     $body = fopen($fileName, 'r');
 
     $encodedFileName = rawurlencode(basename($fileName));
-    $requestUri = sprintf('/%s/public/upload/%s', $storageUser, $encodedFileName);
+
+    if (null !== $optionFolder) {
+        $encodedFolderName = rawurlencode($optionFolder);
+        $requestUri = sprintf('/%s/public/upload/%s/%s', $storageUser, $encodedFolderName, $encodedFileName);
+    } else {
+        $requestUri = sprintf('/%s/public/upload/%s', $storageUser, $encodedFileName);
+    }
+
+    $headers = array(
+        'Content-Type' => $contentType,
+        'Authorization' => sprintf('Bearer %s', $bearerToken),
+    );
+    if (!$optionForce) {
+        // only upload when file does not exist yet
+        $headers['If-None-Match'] = '"*"';
+    }
+
     $response = $client->put(
         $requestUri,
         array(
             'body' => $body,
-            'headers' => array(
-                'If-None-Match' => '"*"',       // only upload when file does
-                                                // not exist yet
-                'Content-Type' => $contentType,
-                'Authorization' => sprintf('Bearer %s', $bearerToken),
-            ),
+            'headers' => $headers,
         )
     );
     echo $storageRoot.$requestUri.PHP_EOL;
 } catch (Exception $e) {
     echo $e->getMessage().PHP_EOL;
+    //echo $e->getResponse().PHP_EOL;
     exit(1);
 }
