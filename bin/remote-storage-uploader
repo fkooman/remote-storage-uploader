@@ -25,7 +25,18 @@ try {
     }
 
     if (null === $fileName) {
-        throw new Exception('specify file to upload');
+        $helpMessage = array(
+            '*** remoteStorage Uploader ***',
+            '',
+            sprintf('Syntax: %s [--folder name] [--force] file', $argv[0]),
+            '    --folder name     specify a folder under "upload" that will',
+            '                      be used to upload the file to',
+            '    --force           overwrite existing file with the same name',
+        );
+
+        throw new Exception(
+            implode(PHP_EOL, $helpMessage)
+        );
     }
 
     if (!is_readable($fileName)) {
@@ -79,6 +90,5 @@ try {
     echo $storageRoot.$requestUri.PHP_EOL;
 } catch (Exception $e) {
     echo $e->getMessage().PHP_EOL;
-    //echo $e->getResponse().PHP_EOL;
     exit(1);
 }
