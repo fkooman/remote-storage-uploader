@@ -6,8 +6,10 @@ require_once dirname(__DIR__).'/vendor/autoload.php';
 use GuzzleHttp\Client;
 use fkooman\Config\Reader;
 use fkooman\Config\YamlFile;
+use fkooman\WebFinger\WebFinger;
 
 try {
+    $optionAuthorize = false;
     $optionForce = false;
     $optionFolder = null;
     $fileName = null;
@@ -15,6 +17,9 @@ try {
     $i = 1;
 
     for (; $i < $argc; ++$i) {
+        if ('--authorize' === $argv[$i]) {
+            $optionAuthorize = true;
+        }
         if ('--force' === $argv[$i]) {
             $optionForce = true;
         }
@@ -28,7 +33,9 @@ try {
         $helpMessage = array(
             '*** remoteStorage Uploader ***',
             '',
-            sprintf('Syntax: %s [--folder name] [--force] file', $argv[0]),
+            sprintf('Syntax: %s [--authorize] [--folder name] [--force] file', $argv[0]),
+            '    --authorize       print a URL to go to with your browser to',
+            '                      obtain authorization',
             '    --folder name     specify a folder under "upload" that will',
             '                      be used to upload the file to',
             '    --force           overwrite existing file with the same name',
@@ -39,22 +46,40 @@ try {
         );
     }
 
-    if (!is_readable($fileName)) {
-        throw new Exception('unable to read file');
-    }
-
     $reader = new Reader(
         new YamlFile(dirname(__DIR__).'/config/uploader.yaml')
     );
-    $storageRoot = $reader->v('storageRoot');
-    $storageUser = $reader->v('storageUser');
+
+    $userAddress = $reader->v('userAddress');
     $bearerToken = $reader->v('bearerToken');
 
-    $client = new Client(
-        array(
-            'base_url' => $storageRoot,
-        )
-    );
+    $w = new WebFinger();
+    $w->setOption('ignore_property_value_type', true);
+
+    $webFingerData = $w->finger($userAddress);
+    if($optionAuthorize) {
+        $authorizeUri = $webFingerData->getProperty(
+            'http://tools.ietf.org/id/draft-dejong-remotestorage',
+            'http://tools.ietf.org/html/rfc6749#section-4.2'
+        );
+
+        $q = http_build_query(
+            array(
+                'client_id' => 'https://fkooman.github.io',
+                'response_type' => 'token',
+                'scope' => 'upload:rw',
+                'redirect_uri' => 'https://fkooman.github.io/remote-storage-uploader/index.html',
+            )
+        );
+        $separator = false === strpos($authorizeUri, '?') ? '?' : '&';
+
+        echo sprintf('%s%s%s', $authorizeUri, $separator, $q) . PHP_EOL;
+        exit(0);
+    }
+
+    if (!is_readable($fileName)) {
+        throw new Exception('unable to read file');
+    }
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
     $contentType = finfo_file($finfo, $fileName);
@@ -64,13 +89,15 @@ try {
 
     $encodedFileName = rawurlencode(basename($fileName));
 
+    $storageRoot = $webFingerData->getHref('http://tools.ietf.org/id/draft-dejong-remotestorage');
     if (null !== $optionFolder) {
         $encodedFolderName = rawurlencode($optionFolder);
-        $requestUri = sprintf('/%s/public/upload/%s/%s', $storageUser, $encodedFolderName, $encodedFileName);
+        $requestUri = sprintf('%s/public/upload/%s/%s', $storageRoot, $encodedFolderName, $encodedFileName);
     } else {
-        $requestUri = sprintf('/%s/public/upload/%s', $storageUser, $encodedFileName);
+        $requestUri = sprintf('%s/public/upload/%s', $storageRoot, $encodedFileName);
     }
 
+    $client = new Client();
     $headers = array(
         'Content-Type' => $contentType,
         'Authorization' => sprintf('Bearer %s', $bearerToken),

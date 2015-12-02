@@ -11,6 +11,7 @@
     "require": {
         "ext-fileinfo": "*",
         "fkooman/config": "^1.0.0",
+	"fkooman/webfinger": "^1.1.0",
         "guzzlehttp/guzzle": "^5.3"
     }
 }

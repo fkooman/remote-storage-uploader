@@ -1,3 +1,6 @@
-storageRoot: https://storage.tuxed.net
-storageUser: fkooman
+userAddress: fkooman@storage.tuxed.net
+
+# use remote-storage-uploader --authorize to generate a URL based on
+# WebFinger records that asks for permission to use this application
+# and display a token you can copy paste below.
 bearerToken: 12345abcdef

@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "10900734686b112ed9f0b127b571b661",
-    "content-hash": "96aa39b728b5530e43e0d167a17a8f0e",
+    "hash": "68a9cd97d4fb40d4e5dcbd452927183a",
+    "content-hash": "e6ad51eb9eba5ee312c446676a8aedda",
     "packages": [
         {
             "name": "fkooman/config",
@@ -45,6 +45,45 @@
             ],
             "description": "Read and write configuration files",
             "time": "2015-11-09 18:12:16"
+        },
+        {
+            "name": "fkooman/webfinger",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/fkooman/php-lib-webfinger.git",
+                "reference": "f4caab5b6c9a92c9ee707c88c7ef2667a15bf68e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/fkooman/php-lib-webfinger/zipball/f4caab5b6c9a92c9ee707c88c7ef2667a15bf68e",
+                "reference": "f4caab5b6c9a92c9ee707c88c7ef2667a15bf68e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-filter": "*",
+                "ext-spl": "*",
+                "guzzlehttp/guzzle": "~5.3",
+                "php": ">= 5.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "fkooman\\WebFinger\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "François Kooman",
+                    "email": "fkooman@tuxed.net"
+                }
+            ],
+            "description": "WebFinger client library",
+            "time": "2015-12-02 21:29:01"
         },
         {
             "name": "guzzlehttp/guzzle",
