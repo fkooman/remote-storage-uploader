@@ -57,9 +57,15 @@ try {
     $w->setOption('ignore_property_value_type', true);
 
     $webFingerData = $w->finger($userAddress);
-    if($optionAuthorize) {
+
+    $linkRelation = findLinkRelation($webFingerData->getLinkRelations());
+    if (false === $linkRelation) {
+        throw new Exception('we did not find a remoteStorage link relation');
+    }
+
+    if ($optionAuthorize) {
         $authorizeUri = $webFingerData->getProperty(
-            'http://tools.ietf.org/id/draft-dejong-remotestorage',
+            $linkRelation,
             'http://tools.ietf.org/html/rfc6749#section-4.2'
         );
 
@@ -73,7 +79,7 @@ try {
         );
         $separator = false === strpos($authorizeUri, '?') ? '?' : '&';
 
-        echo sprintf('%s%s%s', $authorizeUri, $separator, $q) . PHP_EOL;
+        echo sprintf('%s%s%s', $authorizeUri, $separator, $q).PHP_EOL;
         exit(0);
     }
 
@@ -89,7 +95,7 @@ try {
 
     $encodedFileName = rawurlencode(basename($fileName));
 
-    $storageRoot = $webFingerData->getHref('http://tools.ietf.org/id/draft-dejong-remotestorage');
+    $storageRoot = $webFingerData->getHref($linkRelation);
     if (null !== $optionFolder) {
         $encodedFolderName = rawurlencode($optionFolder);
         $requestUri = sprintf('%s/public/upload/%s/%s', $storageRoot, $encodedFolderName, $encodedFileName);
@@ -114,8 +120,23 @@ try {
             'headers' => $headers,
         )
     );
-    echo $storageRoot.$requestUri.PHP_EOL;
+    echo $requestUri.PHP_EOL;
 } catch (Exception $e) {
     echo $e->getMessage().PHP_EOL;
     exit(1);
+}
+
+function findLinkRelation(array $linkRelations)
+{
+    $supportedLinkRelations = array(
+        'http://tools.ietf.org/id/draft-dejong-remotestorage',
+        'remotestorage',
+    );
+    foreach ($supportedLinkRelations as $linkRelation) {
+        if (in_array($linkRelation, $linkRelations)) {
+            return $linkRelation;
+        }
+    }
+
+    return false;
 }
