@@ -28,5 +28,6 @@ code to `config/uploader.yaml` as `bearerToken`.
 The application will print the full URL where the document is stored on 
 succesful upload.
 
-You can use `--force` to overwrite existing files, and `--folder MyFolder` to
-specify a subfolder of `upload` to write the file to.
+You can use `--force` to overwrite existing files, `--folder MyFolder` to
+specify a subfolder of `upload` to write the file to and `--mime-type foo/bar` 
+to override autodetecion of the file's mime type.
